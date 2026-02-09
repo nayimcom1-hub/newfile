@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Barrah Mullah Kandha Sporting Club</title>
+
+<style>
+:root{
+  --primary:#f26522;
+  --secondary:#2f7d32;
+  --dark:#1f2937;
+  --light:#f4f6f8;
+}
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:"Segoe UI",sans-serif;
+  background:var(--light);
+  color:var(--dark);
+}
+
+header{
+  background:linear-gradient(135deg,var(--primary),#ff9b63);
+  color:#fff;
+  padding:20px;
+  text-align:center;
+  font-size:22px;
+  font-weight:600;
+}
+
+.container{
+  max-width:480px;
+  margin:auto;
+  padding:16px;
+}
+
+.buttons{
+  display:flex;
+  gap:12px;
+  margin:18px 0;
+}
+.buttons button{
+  flex:1;
+  padding:14px;
+  border:none;
+  border-radius:25px;
+  font-size:15px;
+  font-weight:600;
+  cursor:pointer;
+  color:#fff;
+}
+#admissionBtn{background:var(--secondary)}
+#playersBtn{background:var(--primary)}
+
+.section{
+  display:none;
+  background:#fff;
+  border-radius:14px;
+  padding:16px;
+  box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
+.section.active{display:block}
+
+.section h3{
+  margin-top:0;
+  font-size:18px;
+  border-bottom:2px solid var(--light);
+  padding-bottom:8px;
+}
+
+input{
+  width:100%;
+  padding:12px;
+  margin:8px 0;
+  border-radius:8px;
+  border:1px solid #d1d5db;
+  font-size:14px;
+}
+
+.submit-btn{
+  background:var(--primary);
+  margin-top:10px;
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:25px;
+  color:#fff;
+  font-size:15px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+/* PLAYER CARD */
+.player-card{
+  display:flex;
+  gap:12px;
+  padding:12px;
+  margin-top:12px;
+  border-radius:12px;
+  background:#fff;
+  box-shadow:0 4px 12px rgba(0,0,0,.08);
+}
+
+.player-card img{
+  width:50px;
+  height:65px;
+  object-fit:cover;
+  border-radius:4px;
+  border:1px solid #ccc;
+}
+
+.player-info{
+  flex:1;
+  font-size:14px;
+}
+
+.player-info b{font-size:15px}
+
+.card-actions button{
+  width:100%;
+  margin-top:6px;
+  padding:8px;
+  border:none;
+  border-radius:18px;
+  font-size:13px;
+  cursor:pointer;
+  color:#fff;
+}
+
+.info-btn{background:var(--secondary)}
+.edit-btn{background:#2563eb}
+.delete-btn{background:#dc2626}
+
+/* DETAILS */
+#detailBox img{
+  width:80px;
+  height:100px;
+  object-fit:cover;
+  border-radius:6px;
+  border:1px solid #ccc;
+  display:block;
+  margin-bottom:10px;
+}
+
+footer{
+  margin-top:25px;
+  padding:12px;
+  background:var(--primary);
+  color:#fff;
+  text-align:center;
+  font-size:14px;
+}
+</style>
+</head>
+
+<body>
+
+<header>Barrah Mullah Kandha Sporting Club</header>
+
+<div class="container">
+
+<div class="buttons">
+  <button id="admissionBtn">Admission</button>
+  <button id="playersBtn">Players List</button>
+</div>
+
+<!-- ADMISSION -->
+<div id="admission" class="section active">
+<h3>Admission Form</h3>
+
+<input id="name" placeholder="Player Name">
+<input id="father" placeholder="Father's Name">
+<input id="address" placeholder="Address">
+<input id="dob" type="date">
+<input id="jersey" placeholder="Jersey Number">
+<input id="position" placeholder="Position">
+<input id="photo" type="file" accept="image/*">
+
+<button id="submitBtn" class="submit-btn">Submit Admission</button>
+</div>
+
+<!-- PLAYERS -->
+<div id="players" class="section">
+<h3>Players List</h3>
+<input id="search" placeholder="Search by name / age / position" onkeyup="searchPlayer()">
+<div id="playerList"></div>
+</div>
+
+<!-- DETAILS -->
+<div id="details" class="section">
+<h3>Player Information</h3>
+<div id="detailBox"></div>
+<button class="submit-btn" onclick="showPlayers()">Back to List</button>
+</div>
+
+</div>
+
+<footer>Official Club Management Panel</footer>
+
+<script>
+let players=[];
+const ADMIN_PASSWORD="1234";
+
+// Button event listeners
+document.getElementById("admissionBtn").addEventListener("click",()=>showSection("admission"));
+document.getElementById("playersBtn").addEventListener("click",showPlayers);
+document.getElementById("submitBtn").addEventListener("click",submitPlayer);
+
+function showSection(id){
+ document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+ document.getElementById(id).classList.add("active");
+}
+
+// Submit player
+function submitPlayer(){
+ const nameInput = document.getElementById("name");
+ if(nameInput.value.trim()===""){
+   alert("Player name required");
+   return;
+ }
+
+ let dob=document.getElementById("dob").value;
+ let age = dob ? new Date().getFullYear()-new Date(dob).getFullYear() : "";
+ let file=document.getElementById("photo").files[0];
+ let admissionDate=new Date().toLocaleDateString();
+
+ let playerData={
+   name:nameInput.value,
+   father:document.getElementById("father").value,
+   address:document.getElementById("address").value,
+   dob:dob,
+   age:age,
+   jersey:document.getElementById("jersey").value,
+   position:document.getElementById("position").value,
+   admissionDate:admissionDate,
+   photo:""
+ };
+
+ if(file){
+   let reader=new FileReader();
+   reader.onload=()=>{
+     playerData.photo=reader.result;
+     players.push(playerData);
+     alert("Admission Successful");
+     clearForm();
+     showPlayers();
+   };
+   reader.readAsDataURL(file);
+ }else{
+   players.push(playerData);
+   alert("Admission Successful");
+   clearForm();
+   showPlayers();
+ }
+}
+
+// Clear form fields
+function clearForm(){
+ document.getElementById("name").value="";
+ document.getElementById("father").value="";
+ document.getElementById("address").value="";
+ document.getElementById("dob").value="";
+ document.getElementById("jersey").value="";
+ document.getElementById("position").value="";
+ document.getElementById("photo").value="";
+}
+
+// Show players list
+function showPlayers(){
+ showSection("players");
+ renderPlayers(players);
+}
+
+// Render player cards
+function renderPlayers(list){
+ const playerList=document.getElementById("playerList");
+ playerList.innerHTML="";
+ list.forEach((p,i)=>{
+  playerList.innerHTML+=`
+  <div class="player-card">
+    ${p.photo ? `<img src="${p.photo}">` : ``}
+    <div class="player-info">
+      <b>${p.name}</b><br>
+      Age: ${p.age}<br>
+      Jersey: ${p.jersey}<br>
+      Position: ${p.position}
+      <div class="card-actions">
+        <button class="info-btn" onclick="showDetails(${i})">Information</button>
+        <button class="edit-btn" onclick="editPlayer(${i})">Edit</button>
+        <button class="delete-btn" onclick="deletePlayer(${i})">Delete</button>
+      </div>
+    </div>
+  </div>`;
+ });
+}
+
+// Show player details
+function showDetails(i){
+ let p=players[i];
+ const detailBox=document.getElementById("detailBox");
+ detailBox.innerHTML=`
+  ${p.photo ? `<img src="${p.photo}">` : ``}
+  <b>Name:</b> ${p.name}<br>
+  <b>Father:</b> ${p.father}<br>
+  <b>Address:</b> ${p.address}<br>
+  <b>Date of Birth:</b> ${p.dob}<br>
+  <b>Age:</b> ${p.age}<br>
+  <b>Jersey:</b> ${p.jersey}<br>
+  <b>Position:</b> ${p.position}<br>
+  <b>Admission Date:</b> ${p.admissionDate}
+ `;
+ showSection("details");
+}
+
+// Edit player
+function editPlayer(i){
+ let pass=prompt("Admin password");
+ if(pass!==ADMIN_PASSWORD) return alert("Wrong password");
+
+ let p=players[i];
+ showSection("admission");
+ document.getElementById("name").value=p.name;
+ document.getElementById("father").value=p.father;
+ document.getElementById("address").value=p.address;
+ document.getElementById("dob").value=p.dob;
+ document.getElementById("jersey").value=p.jersey;
+ document.getElementById("position").value=p.position;
+ players.splice(i,1);
+}
+
+// Delete player
+function deletePlayer(i){
+ let pass=prompt("Admin password");
+ if(pass===ADMIN_PASSWORD){
+  players.splice(i,1);
+  showPlayers();
+ }else alert("Wrong password");
+}
+
+// Search player
+function searchPlayer(){
+ let v=document.getElementById("search").value.toLowerCase();
+ renderPlayers(players.filter(p=>
+  p.name.toLowerCase().includes(v)||
+  p.position.toLowerCase().includes(v)||
+  p.age.toString().includes(v)
+ ));
+}
+</script>
+
+</body>
+</html>
